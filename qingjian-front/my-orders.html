@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>我的订单</title>
+  <link rel="stylesheet" href="./css/element.css">
+  <link href="./css/main.css" rel="stylesheet">
+  <style>
+    body { background: #f5f5f5; margin: 0; }
+    .order-header { display: flex; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 1px solid #eee; }
+    .order-header .back { font-size: 20px; cursor: pointer; margin-right: 12px; }
+    .order-header .title { font-size: 16px; font-weight: 600; }
+    .order-list { padding: 8px 16px; }
+    .order-item { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 8px; }
+    .order-item .voucher-title { font-size: 14px; color: #333; font-weight: 600; margin-bottom: 8px; }
+    .order-item .order-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+    .order-item .order-row .label { color: #999; }
+    .order-item .order-row .val { color: #333; }
+    .order-item .order-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+    .order-item .btn { padding: 6px 16px; border-radius: 16px; font-size: 13px; cursor: pointer; border: none; }
+    .btn-pay { background: #ff2442; color: #fff; }
+    .btn-detail { background: #f5f5f5; color: #333; }
+    .status-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .status-1 { background: #fff3e0; color: #f57c00; }
+    .status-2 { background: #e8f5e9; color: #43a047; }
+    .status-3 { background: #e3f2fd; color: #1e88e5; }
+    .status-4 { background: #f5f5f5; color: #999; }
+    .empty-order { text-align: center; padding: 60px 0; color: #999; }
+    .empty-order i { font-size: 48px; display: block; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="order-header">
+    <div class="back" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+    <div class="title">我的订单</div>
+  </div>
+  <div class="order-list">
+    <div class="order-item" v-for="order in orders" :key="order.id">
+      <div class="voucher-title">{{ getVoucherTitle(order) }}</div>
+      <div class="order-row">
+        <span class="label">订单编号</span>
+        <span class="val">{{ order.id }}</span>
+      </div>
+      <div class="order-row">
+        <span class="label">下单时间</span>
+        <span class="val">{{ order.createTime }}</span>
+      </div>
+      <div class="order-row">
+        <span class="label">支付方式</span>
+        <span class="val">{{ getPayType(order) }}</span>
+      </div>
+      <div class="order-row">
+        <span class="label">订单状态</span>
+        <span class="val"><span class="status-tag" :class="'status-' + order.status">{{ getStatusText(order.status) }}</span></span>
+      </div>
+      <div class="order-actions">
+        <button class="btn btn-detail" @click="viewVoucher(order)">查看券详情</button>
+        <button class="btn btn-pay" v-if="order.status === 1" @click="toPay(order)">立即支付</button>
+      </div>
+    </div>
+    <div class="empty-order" v-if="orders.length === 0">
+      <i class="el-icon-document"></i>
+      <p>暂无订单</p>
+    </div>
+  </div>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script>
+  const app = new Vue({
+    el: "#app",
+    data: {
+      orders: [],
+      voucherMap: {}
+    },
+    created() {
+      this.loadOrders();
+    },
+    methods: {
+      loadOrders() {
+        axios.get('/voucher-order/list').then(data => {
+          this.orders = data || [];
+          this.loadVouchers();
+        }).catch(err => {
+          this.orders = [];
+        });
+      },
+      loadVouchers() {
+        const ids = [...new Set(this.orders.map(o => o.voucherId))];
+        ids.forEach(id => {
+          axios.get('/voucher/' + id).then(v => {
+            this.$set(this.voucherMap, id, v);
+          });
+        });
+      },
+      getVoucherTitle(order) {
+        const v = this.voucherMap[order.voucherId];
+        return v ? v.title : '优惠券#' + order.voucherId;
+      },
+      getPayType(order) {
+        const types = { 1: '余额支付', 2: '支付宝', 3: '微信' };
+        return types[order.payType] || '未支付';
+      },
+      getStatusText(status) {
+        const map = { 1: '未支付', 2: '已支付', 3: '已核销', 4: '已取消', 5: '退款中', 6: '已退款' };
+        return map[status] || '未知';
+      },
+      toPay(order) {
+        location.href = '/pay.html?orderId=' + order.id;
+      },
+      viewVoucher(order) {
+        const v = this.voucherMap[order.voucherId];
+        if (v && v.shopId) {
+          location.href = '/shop-detail.html?id=' + v.shopId;
+        } else {
+          this.$message.warning('店铺信息不存在');
+        }
+      },
+      goBack() {
+        history.back();
+      }
+    }
+  })
+</script>
+</body>
+</html>

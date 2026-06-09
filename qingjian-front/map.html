@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>附近商户</title>
+  <link rel="stylesheet" href="./css/element.css">
+  <link href="./css/main.css" rel="stylesheet">
+  <link href="./css/map.css" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+  <div class="map-header">
+    <div class="map-back-btn" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+    <div class="map-title">附近商户</div>
+    <div class="map-placeholder"></div>
+  </div>
+
+  <!-- 地图区域 -->
+  <div class="map-3d-container" @wheel.prevent="handleWheel" @touchstart="handleTouchStart" @touchmove.prevent="handleTouchMove">
+    <!-- 缩放控制按钮 -->
+    <div class="zoom-controls">
+      <div class="zoom-btn" @click="zoomIn"><i class="el-icon-plus"></i></div>
+      <div class="zoom-level">{{ Math.round(zoomLevel * 100) }}%</div>
+      <div class="zoom-btn" @click="zoomOut"><i class="el-icon-minus"></i></div>
+    </div>
+
+    <div class="map-3d-world" :style="mapTransform">
+      <!-- 背景装饰：树木和建筑物 -->
+      <div class="map-bg-decorations">
+        <div class="tree" style="top:10%;left:15%"></div>
+        <div class="tree" style="top:20%;left:75%"></div>
+        <div class="tree" style="top:60%;left:10%"></div>
+        <div class="tree" style="top:70%;left:80%"></div>
+        <div class="tree" style="top:40%;left:85%"></div>
+        <div class="tree" style="top:80%;left:25%"></div>
+        <div class="building" style="top:15%;left:45%"></div>
+        <div class="building" style="top:55%;left:60%"></div>
+        <div class="building" style="top:75%;left:50%"></div>
+      </div>
+
+      <!-- 道路网络 -->
+      <svg class="road-network" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="roadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#e0e0e0;stop-opacity:0.6" />
+            <stop offset="100%" style="stop-color:#bdbdbd;stop-opacity:0.4" />
+          </linearGradient>
+        </defs>
+        <!-- 主干道 -->
+        <line x1="200" y1="0" x2="200" y2="400" stroke="url(#roadGrad)" stroke-width="8" stroke-dasharray="12,6"/>
+        <line x1="0" y1="200" x2="400" y2="200" stroke="url(#roadGrad)" stroke-width="8" stroke-dasharray="12,6"/>
+        <!-- 斜路 -->
+        <line x1="50" y1="50" x2="350" y2="350" stroke="url(#roadGrad)" stroke-width="4" stroke-dasharray="8,4"/>
+        <line x1="350" y1="50" x2="50" y2="350" stroke="url(#roadGrad)" stroke-width="4" stroke-dasharray="8,4"/>
+      </svg>
+
+      <!-- 连接线：从中心到各商家 -->
+      <svg class="connection-lines" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+        <line v-for="(shop, index) in shops" :key="'line-'+shop.id"
+              x1="200" y1="200"
+              :x2="200 + getMarkerX(index)"
+              :y2="200 + getMarkerY(index)"
+              stroke="#007aff"
+              stroke-width="2"
+              stroke-dasharray="6,3"
+              opacity="0.5"/>
+      </svg>
+
+      <!-- 中心玩家头像 -->
+      <div class="player-center">
+        <div class="player-avatar-3d">
+          <div class="avatar-pulse"></div>
+          <div class="avatar-shadow"></div>
+          <img :src="currentUserIcon || '/imgs/icons/default-icon.png'" alt="我" />
+          <div class="player-label">我</div>
+        </div>
+      </div>
+
+      <!-- 商家标记 -->
+      <div class="shop-markers">
+        <div 
+          class="shop-marker" 
+          v-for="(shop, index) in shops" 
+          :key="shop.id"
+          :style="getMarkerStyle(index)"
+          @click="toShopDetail(shop)"
+        >
+          <div class="marker-pin">
+            <div class="marker-icon">
+              <img :src="shop.images" alt="" />
+            </div>
+            <div class="marker-arrow"></div>
+          </div>
+          <div class="marker-label">{{ shop.name }}</div>
+          <div class="marker-distance">{{ formatDistance(shop.distance) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 下方商户列表 -->
+  <div class="shop-list-panel" :class="{ expanded: listExpanded }" @scroll="onListScroll">
+    <div class="panel-header" @click="toggleList">
+      <span class="panel-title">附近商户</span>
+      <div class="panel-right">
+        <span class="panel-count">{{ shops.length }} 家</span>
+        <i :class="listExpanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" class="toggle-icon"></i>
+      </div>
+    </div>
+    <div class="shop-list" v-show="listExpanded">
+      <div class="shop-item" v-for="s in shops" :key="s.id" @click="toShopDetail(s)">
+        <div class="shop-item-img">
+          <img :src="s.images" alt="" />
+        </div>
+        <div class="shop-item-info">
+          <div class="shop-item-name">{{ s.name }}</div>
+          <div class="shop-item-meta">
+            <span class="shop-item-score">
+              <i class="el-icon-star-on"></i> {{ (s.score / 10).toFixed(1) }}
+            </span>
+            <span class="shop-item-distance">{{ formatDistance(s.distance) }}</span>
+          </div>
+          <div class="shop-item-address">{{ s.address }}</div>
+        </div>
+      </div>
+      <div v-if="loading" class="loading-more">
+        <div class="loading-spinner"></div>
+        <span>加载中...</span>
+      </div>
+      <div v-else-if="noMore" class="no-more">
+        <span>— 已经到底啦 —</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script>
+  const app = new Vue({
+    el: "#app",
+    data: {
+      shops: [],
+      loading: false,
+      noMore: false,
+      current: 1,
+      pageSize: 10,
+      currentUserIcon: '',
+      listExpanded: true,
+      zoomLevel: 1,
+      minZoom: 0.5,
+      maxZoom: 2,
+      touchStartDist: 0,
+      touchStartZoom: 1,
+      params: {
+        x: 120.149192,
+        y: 30.316078,
+        current: 1
+      }
+    },
+    created() {
+      this.getUserInfo();
+      this.queryShops();
+    },
+    computed: {
+      mapTransform() {
+        return {
+          transform: `scale(${this.zoomLevel})`,
+          transformOrigin: 'center center'
+        };
+      }
+    },
+    methods: {
+      getUserInfo() {
+        axios.get("/user/me")
+          .then(data => {
+            this.currentUserIcon = data.icon || '/imgs/icons/default-icon.png';
+          })
+          .catch(() => {});
+      },
+      queryShops() {
+        if (this.loading || this.noMore) return;
+        this.loading = true;
+        axios.get("/shop/of/location", {
+          params: {
+            ...this.params,
+            sortBy: 'distance'
+          }
+        })
+          .then(data => {
+            if (data && data.length > 0) {
+              data.forEach(s => {
+                s.images = s.images ? s.images.split(',')[0] : '/imgs/icons/default-icon.png';
+              });
+              this.shops = this.shops.concat(data);
+              if (data.length < this.pageSize) {
+                this.noMore = true;
+              }
+            } else {
+              this.noMore = true;
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            this.$message.error('加载失败');
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+      },
+      getMarkerX(index) {
+        const angle = (index * 51.4) * Math.PI / 180;
+        const radius = 70 + (index % 4) * 30;
+        return Math.cos(angle) * radius;
+      },
+      getMarkerY(index) {
+        const angle = (index * 51.4) * Math.PI / 180;
+        const radius = 70 + (index % 4) * 30;
+        return Math.sin(angle) * radius;
+      },
+      getMarkerStyle(index) {
+        const x = this.getMarkerX(index);
+        const y = this.getMarkerY(index);
+        const scale = 1 - (index % 4) * 0.12;
+        const zIndex = 10 - (index % 4);
+        return {
+          transform: `translate(${x}px, ${y}px) scale(${scale})`,
+          zIndex: zIndex
+        };
+      },
+      formatDistance(distance) {
+        if (!distance) return '未知';
+        if (distance < 1000) return distance.toFixed(0) + 'm';
+        return (distance / 1000).toFixed(1) + 'km';
+      },
+      toShopDetail(shop) {
+        location.href = "/shop-detail.html?id=" + shop.id;
+      },
+      goBack() {
+        history.back();
+      },
+      toggleList() {
+        this.listExpanded = !this.listExpanded;
+      },
+      handleWheel(e) {
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta));
+      },
+      zoomIn() {
+        this.zoomLevel = Math.min(this.maxZoom, this.zoomLevel + 0.2);
+      },
+      zoomOut() {
+        this.zoomLevel = Math.max(this.minZoom, this.zoomLevel - 0.2);
+      },
+      getTouchDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      },
+      handleTouchStart(e) {
+        if (e.touches.length === 2) {
+          this.touchStartDist = this.getTouchDistance(e.touches);
+          this.touchStartZoom = this.zoomLevel;
+        }
+      },
+      handleTouchMove(e) {
+        if (e.touches.length === 2) {
+          const currentDist = this.getTouchDistance(e.touches);
+          const scale = currentDist / this.touchStartDist;
+          this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, this.touchStartZoom * scale));
+        }
+      },
+      onListScroll(e) {
+        let scrollTop = e.target.scrollTop;
+        let offsetHeight = e.target.offsetHeight;
+        let scrollHeight = e.target.scrollHeight;
+        if (scrollTop + offsetHeight > scrollHeight - 50 && !this.loading && !this.noMore) {
+          this.params.current++;
+          this.queryShops();
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>

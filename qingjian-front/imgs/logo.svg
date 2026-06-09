@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00BFA5"/>
+      <stop offset="100%" stop-color="#00897B"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#00897B" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- 圆角方形背景 -->
+  <rect x="15" y="15" width="170" height="170" rx="42" ry="42"
+        fill="url(#bg)" filter="url(#shadow)"/>
+
+  <!-- 高光效果 -->
+  <rect x="15" y="15" width="170" height="85" rx="42" ry="42"
+        fill="white" opacity="0.08"/>
+
+  <!-- 青荐文字 -->
+  <text x="100" y="118"
+        font-family="'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
+        font-size="68"
+        font-weight="700"
+        fill="white"
+        text-anchor="middle"
+        style="letter-spacing: 6px;">青荐</text>
+
+  <!-- 底部小字 -->
+  <text x="100" y="155"
+        font-family="'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
+        font-size="14"
+        font-weight="400"
+        fill="white"
+        text-anchor="middle"
+        opacity="0.7">QINGJIAN</text>
+</svg>

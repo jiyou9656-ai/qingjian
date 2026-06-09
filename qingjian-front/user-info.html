@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>青荐</title>
+  <link rel="icon" href="/imgs/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/element.css">
+  <link href="./css/main.css" rel="stylesheet">
+  <link href="./css/info.css" rel="stylesheet">
+
+  <style type="text/css">
+      .el-tabs, .el-tab-pane {
+          height: 100%;
+      }
+
+      .el-tabs__header {
+          height: auto !important;
+          margin: 0 !important;
+      }
+
+      .el-tabs__nav-wrap {
+          margin: 0 !important;
+      }
+
+      .el-tabs__nav-wrap::after {
+          display: none !important;
+      }
+
+      .el-tabs__nav {
+          float: none !important;
+      }
+
+      .el-tabs__item {
+          width: auto !important;
+          text-align: center !important;
+      }
+
+      .el-tabs__active-bar {
+          transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1) !important;
+      }
+
+      .el-tabs__content {
+          height: calc(100% - 44px);
+      }
+  </style>
+
+</head>
+
+<body>
+<div id="app">
+  <div class="top-section">
+    <div class="header">
+      <div class="header-back-btn" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+      <div class="header-title">用户主页&nbsp;&nbsp;&nbsp;</div>
+    </div>
+    <div class="basic">
+      <div class="basic-icon-wrapper">
+        <div class="basic-icon">
+          <img :src="user.icon || '/imgs/icons/default-icon.png'" alt="">
+        </div>
+      </div>
+      <div class="basic-info">
+        <div class="name">{{user.nickName}}</div>
+        <span>杭州</span>
+      </div>
+      <div class="basic-stats">
+        <div class="stat-item" @click="activeName='1'">
+          <div class="stat-value">{{blogs.length}}</div>
+          <div class="stat-label">笔记</div>
+        </div>
+        <div class="stat-item" @click="activeName='3'">
+          <div class="stat-value">{{info.fans || 0}}</div>
+          <div class="stat-label">粉丝</div>
+        </div>
+        <div class="stat-item" @click="activeName='4'">
+          <div class="stat-value">{{info.followee || 0}}</div>
+          <div class="stat-label">关注</div>
+        </div>
+      </div>
+      <div class="basic-actions">
+        <div class="msg-btn" @click="openChat">发消息</div>
+        <div class="follow-action-btn" :class="{'followed': isFollowed}" @click="toggleFollow">
+          {{isFollowed ? '已关注' : '+ 关注'}}
+        </div>
+      </div>
+    </div>
+    <div class="introduce">
+      <span v-if="info.introduce">{{info.introduce}}</span>
+      <span v-else>这个人很懒，什么都没写~</span>
+    </div>
+  </div>
+  <div class="content">
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="笔记" name="1">
+        <div v-for="b in blogs" :key="b.id" class="blog-item" @click="toBlogDetail(b)">
+          <div class="blog-img"><img :src="b.images.split(',')[0]" alt=""></div>
+          <div class="blog-info">
+            <div class="blog-title">{{b.title}}</div>
+            <div class="blog-stats">
+              <div class="blog-liked"><img src="/imgs/thumbup.png" alt=""> {{b.liked}}</div>
+              <div class="blog-comments"><i class="el-icon-chat-dot-round"></i> {{b.comments}}</div>
+            </div>
+          </div>
+        </div>
+        <div v-if="blogs.length === 0" class="empty-state">
+          <i class="el-icon-document"></i>
+          <p>还没有发布笔记</p>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="评价" name="2">评价</el-tab-pane>
+      <el-tab-pane :label="'粉丝(' + (info.fans || 0) + ')'" name="3">
+        <div class="follow-list">
+          <div class="follow-item" v-for="f in fansList" :key="f.id">
+            <div class="follow-avatar">
+              <img :src="f.icon || '/imgs/icons/default-icon.png'" alt="">
+            </div>
+            <div class="follow-info">
+              <div class="follow-name">{{f.nickName}}</div>
+            </div>
+            <button class="follow-btn" @click.stop="goToUser(f.id)">
+              查看
+            </button>
+          </div>
+          <div v-if="fansList.length === 0" class="empty-state">
+            <i class="el-icon-user"></i>
+            <p>还没有粉丝</p>
+          </div>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane :label="'关注(' + (info.followee || 0) + ')'" name="4">
+        <div class="follow-list">
+          <div class="follow-item" v-for="f in followsList" :key="f.id">
+            <div class="follow-avatar">
+              <img :src="f.icon || '/imgs/icons/default-icon.png'" alt="">
+            </div>
+            <div class="follow-info">
+              <div class="follow-name">{{f.nickName}}</div>
+            </div>
+            <button class="follow-btn" @click.stop="goToUser(f.id)">
+              查看
+            </button>
+          </div>
+          <div v-if="followsList.length === 0" class="empty-state">
+            <i class="el-icon-user"></i>
+            <p>还没有关注任何人</p>
+          </div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script>
+  const app = new Vue({
+    el: "#app",
+    data: {
+      user: "",
+      activeName: "1",
+      info: {},
+      blogs: [],
+      fansList: [],
+      followsList: [],
+      targetUserId: null,
+      currentUserId: null,
+      isFollowed: false,
+    },
+    created() {
+      const urlParams = new URLSearchParams(window.location.search);
+      this.targetUserId = urlParams.get('userId');
+      if (!this.targetUserId) {
+        this.$message.error('缺少用户参数');
+        history.back();
+        return;
+      }
+      this.loadCurrentUser();
+    },
+    methods: {
+      loadCurrentUser() {
+        axios.get('/user/me').then(data => {
+          this.currentUserId = data.id;
+          this.loadTargetUser();
+        }).catch(() => {
+          location.href = 'login.html';
+        });
+      },
+      loadTargetUser() {
+        axios.get('/user/' + this.targetUserId).then(data => {
+          if (!data) {
+            this.$message.error('用户不存在');
+            history.back();
+            return;
+          }
+          this.user = data;
+          this.loadUserInfo();
+          this.loadBlogs();
+          this.checkFollowStatus();
+        }).catch(err => {
+          console.error('加载用户信息失败', err);
+          history.back();
+        });
+      },
+      loadUserInfo() {
+        axios.get('/user/info/' + this.targetUserId).then(data => {
+          this.info = data || {};
+        }).catch(err => {
+          console.error('加载用户详情失败', err);
+        });
+      },
+      loadBlogs() {
+        axios.get('/blog/of/user', { params: { id: this.targetUserId } }).then(data => {
+          this.blogs = data || [];
+        }).catch(err => {
+          console.error('加载笔记失败', err);
+          this.blogs = [];
+        });
+      },
+      checkFollowStatus() {
+        axios.get('/follow/or/not/' + this.targetUserId).then(data => {
+          this.isFollowed = data || false;
+        }).catch(() => {
+          this.isFollowed = false;
+        });
+      },
+      toggleFollow() {
+        const action = !this.isFollowed;
+        axios.put('/follow/' + this.targetUserId + '/' + action).then(() => {
+          this.isFollowed = action;
+          this.$message.success(action ? '关注成功' : '已取消关注');
+          // 更新粉丝数
+          if (action) {
+            this.info.fans = (this.info.fans || 0) + 1;
+          } else {
+            this.info.fans = Math.max(0, (this.info.fans || 0) - 1);
+          }
+        }).catch(() => {
+          this.$message.error('操作失败');
+        });
+      },
+      openChat() {
+        location.href = 'chat.html?userId=' + this.targetUserId;
+      },
+      goBack() {
+        history.back();
+      },
+      handleClick(r) {
+        if (r.name === '3') {
+          this.queryFansList();
+        } else if (r.name === '4') {
+          this.queryFollowsList();
+        }
+      },
+      queryFansList() {
+        // 获取该用户的粉丝列表（需要后端支持）
+        this.fansList = [];
+      },
+      queryFollowsList() {
+        // 获取该用户的关注列表（需要后端支持）
+        this.followsList = [];
+      },
+      toBlogDetail(b) {
+        location.href = '/blog-detail.html?id=' + b.id;
+      },
+      goToUser(id) {
+        if (id == this.currentUserId) {
+          location.href = 'info.html';
+        } else {
+          location.href = 'user-info.html?userId=' + id;
+        }
+      },
+    },
+  })
+</script>
+</body>
+
+</html>

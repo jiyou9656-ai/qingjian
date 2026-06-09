@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>青荐</title>
+  <link rel="icon" href="/imgs/logo.svg" type="image/svg+xml">
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="./css/element.css">
+
+  <link href="./css/shop-detail.css" rel="stylesheet">
+  <link href="./css/main.css" rel="stylesheet">
+
+  <style type="text/css">
+
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-back-btn" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+    <div class="header-title"></div>
+    <div class="header-share">...</div>
+  </div>
+  <div class="top-bar"></div>
+  <div class="shop-info-box">
+    <div class="shop-title">{{shop.name}}</div>
+    <div class="shop-rate">
+      <el-rate
+          disabled v-model="shop.score/10"
+          text-color="#F63"
+          show-score
+      ></el-rate>
+      <span>{{shop.comments}}条</span>
+    </div>
+    <div class="shop-rate-info"> 口味:4.9  环境:4.8  服务:4.7 </div>
+    <div class="shop-rank" @click="goToRank">
+      <div class="rank-badge">
+        <i class="el-icon-trophy"></i>
+        <span>点评榜单</span>
+      </div>
+      <div class="rank-text">{{shop.area}}好评榜第{{shop.rank || 1}}名</div>
+      <div class="rank-arrow"><i class="el-icon-arrow-right"></i></div>
+    </div>
+    <div class="shop-images">
+      <div v-for="(s,i) in shop.images" :key="i">
+        <img :src="s" alt="">
+      </div>
+    </div>
+    <div class="shop-address">
+      <div><i class="el-icon-map-location"></i></div>
+      <span>{{shop.address}}</span>
+      <div style="width: 10px; flex-grow: 2; text-align: center; color: #e1e2e3">|</div>
+      <div style="margin: 0 5px"><img src="https://p0.meituan.net/travelcube/bf684aa196c870810655e45b1e52ce843484.png@24w_16h_40q" alt=""></div>
+      <div><img src="https://p0.meituan.net/travelcube/9277ace32123e0c9f59dedf4407892221566.png@24w_24h_40q" alt=""></div>
+    </div>
+  </div>
+  <div class="shop-divider"></div>
+  <div class="shop-open-time">
+    <span><i class="el-icon-watch"></i></span>
+    <div>营业时间</div>
+    <div>{{shop.openHours}}</div>
+    <span class="line-right">查看详情 <i class="el-icon-arrow-right"></i></span>
+  </div>
+  <div class="shop-divider"></div>
+  <div class="shop-voucher">
+    <div>
+      <span class="voucher-icon">券</span>
+      <span style="font-weight: bold;">代金券</span>
+    </div>
+    <div class="voucher-box" v-for="v in vouchers" :key="v.id" v-if="!isEnd(v)">
+      <div class="voucher-circle">
+        <div class="voucher-b"></div>
+        <div class="voucher-b"></div>
+        <div class="voucher-b"></div>
+      </div>
+      <div class="voucher-left">
+        <div class="voucher-title">{{v.title}}</div>
+        <div class="voucher-subtitle">{{v.subTitle}}</div>
+        <div class="voucher-price"><div>￥ {{util.formatPrice(v.payValue)}}</div>  <span>{{formatDiscount(v.payValue, v.actualValue)}}折</span></div>
+      </div>
+      <div class="voucher-right">
+        <div v-if="v.type" class="seckill-box">
+          <div class="voucher-btn" :class="{'disable-btn': isNotBegin(v) || v.stock < 1}" @click="seckill(v)">限时抢购</div>
+          <div class="seckill-stock">剩余 <span>{{v.stock}}</span> 张</div>
+          <div class="seckill-time">{{formatTime(v)}}</div>
+        </div>
+        <div class="voucher-btn" v-else @click="seckill(v)">抢购</div>
+      </div>
+    </div>
+  </div>
+  <div class="shop-divider"></div>
+  <div class="shop-comments">
+    <div class="comments-head">
+      <div>网友评价 <span v-if="commentCount > 0">（{{commentCount}}）</span><span v-else>（暂无评价）</span></div>
+      <div @click="showCommentInput = true" style="cursor:pointer; color:#F63;">
+        <i class="el-icon-edit-outline"></i> 写评价
+      </div>
+    </div>
+    <div class="comment-tags" v-if="commentTags.length > 0">
+      <div class="tag" v-for="t in commentTags" :key="t.tagName">
+        {{t.tagName}}({{t.tagCount}})
+      </div>
+    </div>
+
+    <!-- 写评价弹窗 -->
+    <div v-if="showCommentInput" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; display:flex; align-items:center; justify-content:center;" @click.self="showCommentInput = false">
+      <div style="background:#fff; border-radius:12px; padding:20px; width:90%; max-width:400px;">
+        <h3 style="margin:0 0 15px; font-size:16px;">发表评价</h3>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:14px; color:#666;">评分：</label>
+          <el-rate v-model="newComment.score" text-color="#F63"></el-rate>
+        </div>
+        <div style="margin-bottom:10px;">
+          <textarea v-model="newComment.content" placeholder="说说你的体验..." rows="4" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:14px; resize:none;"></textarea>
+        </div>
+        <div style="margin-bottom:15px;">
+          <label style="font-size:14px; color:#666;">标签：</label>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+            <span v-for="tag in tagOptions" :key="tag"
+                  :style="{padding:'4px 12px', borderRadius:'15px', fontSize:'12px', cursor:'pointer',
+                           border: newComment.selectedTags.includes(tag) ? '1px solid #F63' : '1px solid #ddd',
+                           background: newComment.selectedTags.includes(tag) ? '#FFF1F0' : '#fff',
+                           color: newComment.selectedTags.includes(tag) ? '#F63' : '#666'}"
+                  @click="toggleTag(tag)">{{tag}}</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button @click="showCommentInput = false" style="padding:8px 20px; border:1px solid #ddd; border-radius:20px; background:#fff; cursor:pointer;">取消</button>
+          <button @click="submitComment" style="padding:8px 20px; border:none; border-radius:20px; background:#F63; color:#fff; cursor:pointer;">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="comment-list" v-if="comments.length > 0">
+      <div class="comment-box" v-for="c in comments" :key="c.id">
+        <div class="comment-icon">
+          <img :src="c.userIcon || defaultIcon" alt="">
+        </div>
+        <div class="comment-info">
+          <div class="comment-user">
+            <span class="comment-name">{{c.userName || '匿名用户'}}</span>
+          </div>
+          <div class="comment-rating">
+            <el-rate disabled v-model="c.score" :colors="['#FFB800','#FFB800','#FFB800','#FFB800','#FFB800']"></el-rate>
+            <span class="comment-score">{{c.score}}.0分</span>
+          </div>
+          <div class="comment-content">
+            {{c.content}}
+          </div>
+          <div class="comment-meta">
+            <span>浏览 {{c.browseCount || 0}}</span>
+            <span>{{formatCommentTime(c.createTime)}}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: center; padding: 15px 0; color:#999; font-size:13px;" v-if="commentPage * 10 < commentCount">
+        <span @click="loadMoreComments" style="cursor:pointer;">加载更多评价</span>
+      </div>
+    </div>
+    <div v-else style="text-align:center; padding:30px; color:#999; font-size:14px;">
+      暂无评价，快来抢沙发吧！
+    </div>
+  </div>
+  <div class="shop-divider"></div>
+  <div class="copyright">
+    copyright ©2021 qingjian.com
+  </div>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<!-- 引入组件库 -->
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script>
+
+  const app = new Vue({
+    el: "#app",
+    data: {
+      util,
+      shop: {},
+      vouchers: [],
+      shopId: 0,
+      // 评价相关
+      comments: [],
+      commentTags: [],
+      commentCount: 0,
+      commentPage: 1,
+      defaultIcon: "https://p0.meituan.net/userheadpicbackend/57e44d6eba01aad0d8d711788f30a126549507.jpg%4048w_48h_1e_1c_1l%7Cwatermark%3D0",
+      showCommentInput: false,
+      newComment: { score: 5, content: "", selectedTags: [] },
+      tagOptions: ["味道赞", "菜品不错", "分量足", "回头客", "性价比高", "环境好", "服务周到", "停车方便"]
+    },
+    created() {
+      this.shopId = util.getUrlParam("id");
+      this.queryShopById(this.shopId);
+      this.queryVoucher(this.shopId);
+      this.queryComments(this.shopId);
+      this.queryCommentTags(this.shopId);
+    },
+    methods: {
+      goBack() {
+        history.back();
+      },
+      goToRank() {
+        location.href = "/shop-list.html?mode=rank";
+      },
+      queryShopById(shopId) {
+        axios.get("/shop/" + shopId)
+        .then(data => {
+          data.images = data.images.split(",")
+          this.shop = data
+        })
+        .catch(err => {
+          const msg = err.response?.data?.errorMsg || err.response?.data || "请求失败，请重试";
+          this.$message.error(msg);
+        })
+      },
+      queryVoucher(shopId) {
+        axios.get("/voucher/list/" + shopId)
+        .then(data => {
+          this.vouchers = data;
+        })
+        .catch(err => {
+          const msg = err.response?.data?.errorMsg || err.response?.data || "请求失败，请重试";
+          this.$message.error(msg);
+        })
+      },
+      formatTime(v){
+        let b = new Date(v.beginTime);
+        let e = new Date(v.endTime);
+        return b.getMonth() + 1 + "月" + b.getDate() + "日 "
+          +  b.getHours() + ":" + this.formatMinutes(b.getMinutes())
+          + " ~ "/*  + e.getMonth() + 1 + "月" + e.getDate() + "日 " */
+          +  e.getHours() + ":" + this.formatMinutes(e.getMinutes());
+      },
+      formatMinutes(m){
+        if(m < 10) m = "0" + m
+        return m;
+      },
+      isNotBegin(v){
+        return new Date(v.beginTime).getTime() > new Date().getTime();
+      },
+      isEnd(v){
+        return new Date(v.endTime).getTime() < new Date().getTime();
+      },
+      formatDiscount(payValue, actualValue){
+        if (!payValue || !actualValue) return '';
+        const discount = (payValue * 10) / actualValue;
+        if (discount <= 0) return '';
+        if (discount >= 10) return Math.round(discount);
+        return (Math.round(discount * 10) / 10).toFixed(1).replace(/\.0$/, '');
+      },
+      formatCommentTime(time){
+        if (!time) return '';
+        const d = new Date(time);
+        const month = d.getMonth() + 1;
+        const day = d.getDate();
+        return month + '-' + day;
+      },
+      seckill(v){
+        if(this.isNotBegin(v)){
+          this.$message.error("优惠券抢购尚未开始！")
+          return;
+        }
+        if(this.isEnd(v)){
+          this.$message.error("优惠券抢购已经结束！")
+          return;
+        }
+        if(v.stock < 1){
+          this.$message.error("库存不足，请刷新再试试！")
+          return;
+        }
+        let id = v.id;
+        // 秒杀抢购
+        axios.post("/voucher-order/seckill/" + id)
+        .then(data => {
+          // 抢购成功，这里输出订单id，支付功能TODO
+          this.$message.success("抢购成功，订单id：" + data)
+        })
+        .catch(err => {
+          const msg = err.response?.data?.errorMsg || err.response?.data || "请求失败，请重试";
+          this.$message.error(msg);
+        })
+      },
+      // 查询评价列表
+      queryComments(shopId) {
+        axios.get("/shop-comment/list/" + shopId, {
+          params: { current: this.commentPage, size: 10 }
+        }).then(data => {
+          if (data && data.records) {
+            // 分页格式 { records: [...], total: N }
+            this.comments = data.records;
+            this.commentCount = data.total;
+          } else if (Array.isArray(data)) {
+            // 兼容直接返回数组
+            this.comments = data;
+            this.commentCount = data.length;
+          }
+        }).catch(err => {
+          const msg = err.response?.data?.errorMsg || err.response?.data || "请求失败，请重试";
+          this.$message.error(msg);
+        });
+      },
+      // 加载更多评价
+      loadMoreComments() {
+        this.commentPage++;
+        axios.get("/shop-comment/list/" + this.shopId, {
+          params: { current: this.commentPage, size: 10 }
+        }).then(data => {
+          if (data && data.records && data.records.length > 0) {
+            this.comments = this.comments.concat(data.records);
+          } else if (Array.isArray(data) && data.length > 0) {
+            this.comments = this.comments.concat(data);
+          }
+        }).catch(err => {
+          const msg = err.response?.data?.errorMsg || err.response?.data || "请求失败，请重试";
+          this.$message.error(msg);
+        });
+      },
+      // 查询评价标签统计
+      queryCommentTags(shopId) {
+        axios.get("/shop-comment/tags/" + shopId)
+        .then(data => {
+          this.commentTags = data || [];
+        }).catch(err => {});
+      },
+      // 切换标签选择
+      toggleTag(tag) {
+        const idx = this.newComment.selectedTags.indexOf(tag);
+        if (idx >= 0) {
+          this.newComment.selectedTags.splice(idx, 1);
+        } else {
+          this.newComment.selectedTags.push(tag);
+        }
+      },
+      // 提交评价
+      submitComment() {
+        if (!this.newComment.content || this.newComment.content.trim() === '') {
+          this.$message.error("请填写评价内容");
+          return;
+        }
+        if (this.newComment.selectedTags.length === 0) {
+          this.$message.error("请至少选择一个标签");
+          return;
+        }
+        const params = {
+          shopId: this.shopId,
+          score: this.newComment.score,
+          content: this.newComment.content.trim(),
+          tags: this.newComment.selectedTags.join(",")
+        };
+        axios.post("/shop-comment", params)
+        .then(() => {
+          this.$message.success("评价成功");
+          this.showCommentInput = false;
+          this.newComment = { score: 5, content: "", selectedTags: [] };
+          this.commentPage = 1;
+          this.queryComments(this.shopId);
+          this.queryCommentTags(this.shopId);
+        })
+        .catch(err => {
+          const msg = err.response?.data?.errorMsg || err.response?.data || "提交失败，请重试";
+          this.$message.error(msg);
+        });
+      }
+    }
+  })
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>青荐</title>
+  <link rel="icon" href="/imgs/logo.svg" type="image/svg+xml">
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="./css/element.css">
+
+  <link href="./css/shop-list.css" rel="stylesheet">
+  <link href="./css/main.css" rel="stylesheet">
+
+  <style type="text/css">
+
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-back-btn" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+    <div class="header-title">{{typeName}}</div>
+    <div class="header-search">
+      <i class="el-icon-search"></i>
+    </div>
+  </div>
+  <div class="sort-bar">
+    <div class="sort-item" @click="switchMode('list')" :class="{active: mode === 'list'}">
+      商户列表
+    </div>
+    <div class="sort-item" @click="switchMode('rank')" :class="{active: mode === 'rank'}">
+      🏆 点评榜单
+    </div>
+  </div>
+  <div class="sort-bar" v-if="mode === 'list'">
+    <div class="sort-item">
+      <el-dropdown trigger="click" @command="handleCommand">
+      <span class="el-dropdown-link">
+        {{typeName}}<i class="el-icon-arrow-down el-icon--right"></i>
+      </span>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item v-for="t in types" :key="t.id" :command="t">
+            {{t.name}}
+          </el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
+    </div>
+    <div class="sort-item" @click="sortAndQuery('')">
+      距离 <i class="el-icon-arrow-down el-icon--right"></i>
+    </div>
+    <div class="sort-item" @click="sortAndQuery('comments')">
+      人气 <i class="el-icon-arrow-down el-icon--right"></i>
+    </div>
+    <div class="sort-item" @click="sortAndQuery('score')">
+      评分 <i class="el-icon-arrow-down el-icon--right"></i>
+    </div>
+  </div>
+  <div class="shop-list" @scroll="onScroll">
+    <div class="shop-box" v-for="s in shops" :key="s.id" @click="toDetail(s.id)">
+      <div class="shop-rank-badge" v-if="mode === 'rank' && s.rank">{{s.rank}}</div>
+      <div class="shop-img"><img :src="s.images" alt="" loading="lazy" @load="$event.target.classList.add('loaded')"></div>
+      <div class="shop-info">
+        <div class="shop-title shop-item">{{s.name}}</div>
+        <div class="shop-rate shop-item" >
+          <el-rate
+              disabled v-model="s.score/10"
+              text-color="#F63"
+              show-score
+          ></el-rate>
+          <span>{{s.comments}}条</span>
+        </div>
+        <div class="shop-area shop-item">
+          <span>{{s.area}}</span>
+          <span v-if="s.distance">{{s.distance < 1000 ? s.distance.toFixed(1) + 'm' : (s.distance/1000).toFixed(1) + 'km'}}</span>
+        </div>
+        <div class="shop-avg shop-item">￥{{s.avgPrice}}/人</div>
+        <div class="shop-address shop-item">
+          <i class="el-icon-map-location"></i>
+          <span>{{s.address}}</span>
+        </div>
+      </div>
+    </div>
+    <div v-if="isLoading" style="text-align:center; padding:20px; color:#999; font-size:14px;">
+      <i class="el-icon-loading"></i> 加载中...
+    </div>
+  </div>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<!-- 引入组件库 -->
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script>
+
+  const app = new Vue({
+    el: "#app",
+    data: {
+      util,
+      isReachBottom: false,
+      isLoading: false,
+      mode: 'list', // list 或 rank
+      rankPage: 1,
+      types: [], // 类型列表
+      shops: [], // 商店列表
+      typeName: "",
+      params:{
+        typeId: 0,
+        current: 1,
+        sortBy: "",
+        x: 120.149192,
+        y: 30.316078,
+        keyword: ""
+      }
+    },
+    created() {
+      // 获取参数
+      const typeParam = util.getUrlParam("type");
+      this.params.typeId = typeParam ? parseInt(typeParam) : 0;
+      this.typeName = util.getUrlParam("name") || "搜索结果";
+      this.params.keyword = util.getUrlParam("keyword");
+      const modeParam = util.getUrlParam("mode");
+      // 查询类型
+      this.queryTypes();
+      // 如果是榜单模式
+      if (modeParam === 'rank') {
+        this.mode = 'rank';
+        this.rankPage = 1;
+        this.queryRank();
+      } else {
+        // 查询商店
+        this.queryShops();
+      }
+    },
+    methods: {
+      switchMode(mode) {
+        this.mode = mode;
+        if (mode === 'rank') {
+          this.rankPage = 1;
+          this.queryRank();
+        } else {
+          this.params.current = 1;
+          this.shops = [];
+          this.queryShops();
+        }
+      },
+      queryRank() {
+        if (this.isLoading) return;
+        this.isLoading = true;
+        axios.get("/shop/rank", { params: { current: this.rankPage } })
+          .then(data => {
+            if (!data) return;
+            data.forEach(s => {
+              s.images = s.images ? s.images.split(',')[0] : '';
+            });
+            if (this.rankPage === 1) {
+              this.shops = data;
+            } else {
+              this.shops = this.shops.concat(data);
+            }
+          })
+          .catch(err => {
+            const msg = err.response?.data?.errorMsg || err.response?.data || "请求失败，请重试";
+            this.$message.error(msg);
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      queryTypes() {
+        axios.get("/shop-type/list")
+          .then(data => {
+            this.types = data;
+          })
+          .catch(err => {
+            console.log(err);
+            this.$message.error(err)
+          })
+      },
+      queryShops() {
+        if (this.isLoading) return;
+        this.isLoading = true;
+        let url = "/shop/of/type";
+        let params = { ...this.params };
+        
+        if (this.params.keyword) {
+          url = "/shop/of/name";
+          params.name = params.keyword;
+          delete params.keyword;
+          delete params.typeId;
+          delete params.sortBy;
+          delete params.x;
+          delete params.y;
+        }
+        
+        axios.get(url, {
+            params: params
+          })
+          .then(data => {
+            if (!data) {
+              return
+            }
+            data.forEach(s => s.images = s.images.split(',')[0]);
+            // 如果是第一页则替换，否则追加
+            if (this.params.current === 1) {
+              this.shops = data;
+            } else {
+              this.shops = this.shops.concat(data);
+            }
+          })
+          .catch(err => {
+            const msg = err.response?.data?.errorMsg || err.response?.data || "请求失败，请重试";
+            this.$message.error(msg);
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      handleCommand(t) {
+        location.href = "/shop-list.html?type="+t.id+"&name="+t.name;
+      },
+      sortAndQuery(sortBy) {
+        this.params.sortBy = sortBy;
+        this.params.current = 1; // 排序后重置到第一页
+        this.shops = []; // 清空列表
+        this.queryShops();
+      },
+      goBack() {
+        history.back();
+      },
+      toDetail(id) {
+        location.href = "/shop-detail.html?id="+id
+      },
+      onScroll(e) {
+        let scrollTop = e.target.scrollTop;
+        let offsetHeight = e.target.offsetHeight;
+        let scrollHeight = e.target.scrollHeight;
+        if(scrollTop + offsetHeight + 1 > scrollHeight && !this.isReachBottom){
+          this.isReachBottom = true
+          console.log("触底")
+          if (this.mode === 'rank') {
+            this.rankPage++;
+            this.queryRank();
+          } else {
+            this.params.current++;
+            this.queryShops();
+          }
+        }else{
+          this.isReachBottom = false
+        }
+      },
+    }
+  })
+</script>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>青荐 - 聊天</title>
+  <link rel="stylesheet" href="./css/element.css">
+  <link href="./css/main.css" rel="stylesheet">
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f7;
+      color: #1d1d1f;
+    }
+
+    #app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      width: 100%;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #ffffff;
+      padding: 0 12px;
+      border-bottom: 1px solid #eee;
+      flex-shrink: 0;
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-header-back {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1d1d1f;
+      font-size: 20px;
+      border-radius: 50%;
+      transition: background-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .chat-header-back:active {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .chat-header-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .chat-header-clear {
+      padding: 6px 14px;
+      border: 1px solid #e5e5ea;
+      border-radius: 16px;
+      background: #ffffff;
+      color: #86868b;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chat-header-clear:active {
+      background: #f5f5f7;
+      color: #ff3b30;
+      border-color: #ff3b30;
+    }
+
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      background-color: #f5f5f7;
+      padding: 12px;
+    }
+
+    .chat-empty {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #86868b;
+      padding: 60px 20px;
+    }
+
+    .chat-empty i {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .chat-empty p {
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-date-divider {
+      text-align: center;
+      font-size: 12px;
+      color: #86868b;
+      padding: 8px 0;
+    }
+
+    .chat-date-divider span {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 4px 12px;
+      border-radius: 10px;
+    }
+
+    .chat-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      max-width: 100%;
+    }
+
+    .chat-message.self {
+      flex-direction: row-reverse;
+    }
+
+    .chat-msg-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .chat-message.self .chat-msg-wrapper {
+      align-items: flex-end;
+    }
+
+    .chat-msg-name {
+      font-size: 12px;
+      color: #86868b;
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }
+
+    .chat-message.self .chat-msg-name {
+      text-align: right;
+    }
+
+    .chat-msg-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #f0f0f0;
+    }
+
+    .chat-msg-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .chat-msg-bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-message:not(.self) .chat-msg-bubble {
+      background: #ffffff;
+      color: #1d1d1f;
+      border-top-left-radius: 4px;
+    }
+
+    .chat-message.self .chat-msg-bubble {
+      background: #007aff;
+      color: #ffffff;
+      border-top-right-radius: 4px;
+    }
+
+    .chat-msg-time {
+      font-size: 11px;
+      color: #c7c7cc;
+      margin-top: 4px;
+    }
+
+    .chat-message.self .chat-msg-time {
+      text-align: right;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      background: #ffffff;
+      border-top: 1px solid #eee;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #e5e5ea;
+      border-radius: 20px;
+      font-size: 14px;
+      outline: none;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: #007aff;
+      background: #ffffff;
+    }
+
+    .chat-send-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      background: #007aff;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      flex-shrink: 0;
+    }
+
+    .chat-send-btn:active {
+      background: #0056cc;
+    }
+
+    .chat-send-btn:disabled {
+      background: #c7c7cc;
+      cursor: not-allowed;
+    }
+
+    /* 关注提示条 */
+    .follow-tip-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(255, 59, 48, 0.08);
+      border-top: 1px solid rgba(255, 59, 48, 0.15);
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .follow-tip-icon {
+      font-size: 16px;
+      color: #ff3b30;
+      flex-shrink: 0;
+    }
+
+    .follow-tip-text {
+      flex: 1;
+      font-size: 12px;
+      color: #ff3b30;
+      line-height: 1.4;
+    }
+
+    .follow-tip-btn {
+      padding: 4px 14px;
+      border: none;
+      border-radius: 12px;
+      background: #ff3b30;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .follow-tip-btn:active {
+      opacity: 0.8;
+    }
+
+    .follow-tip-btn.followed {
+      background: #34c759;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-header-back" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+        <div class="chat-header-title">{{ otherUserNickName || '聊天' }}</div>
+      </div>
+      <button class="chat-header-clear" @click="clearChat">清除</button>
+    </div>
+    <div class="chat-container" ref="chatContainer">
+      <div class="chat-empty" v-if="messages.length === 0">
+        <i class="el-icon-chat-line-round"></i>
+        <p>暂无聊天记录</p>
+      </div>
+      <div class="chat-messages" v-else>
+        <div v-for="(msg, index) in messages" :key="msg.id">
+          <div class="chat-date-divider" v-if="shouldShowDate(msg, index)">
+            <span>{{ formatDate(msg.createTime) }}</span>
+          </div>
+          <div class="chat-message" :class="{ self: msg.senderId === currentUserId }">
+            <div class="chat-msg-avatar">
+              <img :src="msg.senderIcon || (msg.senderId === currentUserId ? currentUserIcon : otherUserIcon) || './imgs/icons/default.png'" />
+            </div>
+            <div class="chat-msg-wrapper">
+              <div class="chat-msg-name">{{ msg.senderNickName || (msg.senderId === currentUserId ? '我' : otherUserNickName) }}</div>
+              <div class="chat-msg-bubble">{{ msg.content }}</div>
+              <div class="chat-msg-time">{{ formatTime(msg.createTime) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="follow-tip-bar" v-if="showFollowTip">
+      <span class="follow-tip-icon">⚠</span>
+      <span class="follow-tip-text">需关注才能发送第二条消息</span>
+      <button class="follow-tip-btn" @click="doFollow" :class="{ followed: isFollowed }">
+        {{ isFollowed ? '已关注' : '+ 关注' }}
+      </button>
+    </div>
+    <div class="chat-input-bar">
+      <input class="chat-input" v-model="inputContent" @keyup.enter="sendMessage" placeholder="输入消息..." />
+      <button class="chat-send-btn" @click="sendMessage" :disabled="!inputContent.trim()">发送</button>
+    </div>
+  </div>
+  <script src="./js/vue.js"></script>
+  <script src="./js/axios.min.js"></script>
+  <script src="./js/element.js"></script>
+  <script src="./js/common.js"></script>
+  <script>
+    const app = new Vue({
+      el: "#app",
+      data: {
+        otherUserId: null,
+        otherUserNickName: '',
+        otherUserIcon: '',
+        currentUserIcon: '',
+        currentUserId: null,
+        messages: [],
+        inputContent: '',
+        currentPage: 1,
+        hasMore: true,
+        loading: false,
+        showFollowTip: false,
+        isFollowed: false
+      },
+      created() {
+        const urlParams = new URLSearchParams(window.location.search);
+        this.otherUserId = urlParams.get('userId');
+        if (!this.otherUserId) {
+          this.$message.error('缺少用户参数');
+          history.back();
+          return;
+        }
+        this.loadCurrentUser();
+        this.loadOtherUser();
+        this.loadMessages();
+      },
+      methods: {
+        goBack() {
+          history.back();
+        },
+        loadCurrentUser() {
+          axios.get('/user/me').then(data => {
+            this.currentUserId = data.id;
+            this.currentUserIcon = data.icon || './imgs/icons/default.png';
+          }).catch(() => {
+            location.href = 'login.html';
+          });
+        },
+        loadOtherUser() {
+          axios.get('/user/' + this.otherUserId).then(data => {
+            if (data) {
+              this.otherUserNickName = data.nickName;
+              this.otherUserIcon = data.icon || './imgs/icons/default.png';
+            }
+          }).catch(err => {
+            console.error('加载用户信息失败', err);
+          });
+        },
+        loadMessages() {
+          if (this.loading || !this.hasMore) return;
+          this.loading = true;
+          axios.get('/chat/history', {
+            params: {
+              otherUserId: this.otherUserId,
+              current: this.currentPage
+            }
+          }).then(res => {
+            const records = Array.isArray(res) ? res : [];
+            if (records.length === 0) {
+              this.hasMore = false;
+            } else {
+              // 后端返回的是倒序（最新在前），需要正序（最旧在前）
+              const sorted = records.sort((a, b) => new Date(a.createTime) - new Date(b.createTime));
+              this.messages = [...this.messages, ...sorted];
+              this.currentPage++;
+            }
+            this.$nextTick(() => {
+              this.scrollToBottom();
+            });
+          }).catch(err => {
+            console.error('加载消息失败', err);
+          }).finally(() => {
+            this.loading = false;
+          });
+        },
+        sendMessage() {
+          const content = this.inputContent.trim();
+          if (!content) return;
+          
+          axios.post('/chat/send', null, {
+            params: {
+              receiverId: this.otherUserId,
+              content: content
+            }
+          }).then(() => {
+            this.inputContent = '';
+            this.currentPage = 1;
+            this.messages = [];
+            this.hasMore = true;
+            this.loadMessages();
+          }).catch(err => {
+            const errMsg = typeof err === 'string' ? err : '发送失败';
+            if (errMsg && errMsg.includes('关注')) {
+              this.showFollowTip = true;
+            } else {
+              this.$message.error(errMsg);
+            }
+          });
+        },
+        doFollow() {
+          if (this.isFollowed) {
+            // 取消关注
+            axios.put('/follow/' + this.otherUserId + '/false').then(() => {
+              this.isFollowed = false;
+              this.showFollowTip = true;
+              this.$message.success('已取消关注');
+            }).catch(() => {
+              this.$message.error('操作失败');
+            });
+          } else {
+            // 关注
+            axios.put('/follow/' + this.otherUserId + '/true').then(() => {
+              this.isFollowed = true;
+              this.showFollowTip = false;
+              this.$message.success('关注成功，现在可以正常聊天了');
+            }).catch(() => {
+              this.$message.error('操作失败');
+            });
+          }
+        },
+        clearChat() {
+          this.$confirm('确定要清除与该用户的聊天记录吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            axios.delete('/chat/' + this.otherUserId).then(() => {
+              this.$message.success('清除成功');
+              this.messages = [];
+              this.currentPage = 1;
+              this.hasMore = true;
+            }).catch(err => {
+              this.$message.error('清除失败');
+            });
+          }).catch(() => {});
+        },
+        scrollToBottom() {
+          const container = this.$refs.chatContainer;
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        },
+        shouldShowDate(msg, index) {
+          if (index === 0) return true;
+          const prevMsg = this.messages[index - 1];
+          if (!prevMsg) return true;
+          return this.formatDate(msg.createTime) !== this.formatDate(prevMsg.createTime);
+        },
+        formatDate(time) {
+          if (!time) return '';
+          const date = new Date(time);
+          const now = new Date();
+          const diff = now - date;
+          
+          if (diff < 24 * 60 * 60 * 1000) {
+            if (date.toDateString() === now.toDateString()) return '今天';
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) return '昨天';
+          }
+          
+          const year = date.getFullYear();
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+          if (year === now.getFullYear()) {
+            return month + '月' + day + '日';
+          }
+          return year + '年' + month + '月' + day + '日';
+        },
+        formatTime(time) {
+          if (!time) return '';
+          const date = new Date(time);
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          return hours + ':' + minutes;
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

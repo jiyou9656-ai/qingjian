@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>青荐 - 消息</title>
+  <link rel="stylesheet" href="./css/element.css">
+  <link href="./css/main.css" rel="stylesheet">
+  <style type="text/css">
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f7;
+      color: #1d1d1f;
+    }
+
+    #app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .msg-header {
+      width: 100%;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #ffffff;
+      padding: 0 12px;
+      border-bottom: 1px solid #eee;
+      flex-shrink: 0;
+    }
+
+    .msg-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .msg-header-back {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1d1d1f;
+      font-size: 20px;
+      border-radius: 50%;
+      transition: background-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .msg-header-back:active {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .msg-header-title {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .msg-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .msg-new-chat-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+
+    .msg-new-chat-btn:active {
+      background: #e5e5ea;
+    }
+
+    .msg-clear-btn {
+      padding: 6px 14px;
+      border: 1px solid #e5e5ea;
+      border-radius: 16px;
+      background: #ffffff;
+      color: #86868b;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .msg-clear-btn:active {
+      background: #f5f5f7;
+      color: #ff3b30;
+      border-color: #ff3b30;
+    }
+
+    .msg-tabs {
+      display: flex;
+      background: #ffffff;
+      border-bottom: 1px solid #eee;
+      flex-shrink: 0;
+    }
+
+    .msg-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 14px;
+      color: #86868b;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .msg-tab.active {
+      color: #1d1d1f;
+      font-weight: 600;
+    }
+
+    .msg-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 2px;
+      background: #1d1d1f;
+      border-radius: 1px;
+    }
+
+    .msg-tab-badge {
+      display: inline-block;
+      min-width: 16px;
+      height: 16px;
+      line-height: 16px;
+      padding: 0 4px;
+      border-radius: 8px;
+      background: #ff3b30;
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 500;
+      margin-left: 4px;
+      text-align: center;
+    }
+
+    .msg-container {
+      flex: 1;
+      overflow-y: auto;
+      background-color: #f5f5f7;
+      padding: 12px;
+    }
+
+    .msg-empty {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #86868b;
+      padding: 60px 20px;
+    }
+
+    .msg-empty i {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .msg-empty p {
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .msg-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .msg-item {
+      display: flex;
+      padding: 14px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      align-items: center;
+      transition: background-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .msg-item:active {
+      background-color: #f5f5f7;
+    }
+
+    .msg-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 12px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #f5f5f7 0%, #e8e8ed 100%);
+    }
+
+    .msg-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .msg-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .msg-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1d1d1f;
+      margin-bottom: 4px;
+    }
+
+    .msg-preview {
+      font-size: 13px;
+      color: #86868b;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .msg-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .msg-time {
+      font-size: 11px;
+      color: #c7c7cc;
+      margin-bottom: 4px;
+    }
+
+    .msg-unread {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff2442;
+    }
+
+    .msg-unread-count {
+      min-width: 18px;
+      height: 18px;
+      line-height: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background: #ff3b30;
+      color: #ffffff;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .notice-type-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 6px;
+      flex-shrink: 0;
+    }
+
+    .tag-like {
+      background: #fff0f0;
+      color: #ff3b30;
+    }
+
+    .tag-comment {
+      background: #f0f5ff;
+      color: #007aff;
+    }
+
+    .tag-follow {
+      background: #f0fff4;
+      color: #34c759;
+    }
+
+    /* 新建聊天对话框样式 */
+    .new-chat-dialog .el-dialog__body {
+      padding: 16px;
+    }
+
+    .contact-search {
+      margin-bottom: 16px;
+    }
+
+    .contact-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .contact-item:active {
+      background-color: #f5f5f7;
+    }
+
+    .contact-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 12px;
+      background: #f0f0f0;
+    }
+
+    .contact-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .contact-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .contact-name {
+      font-size: 14px;
+      color: #1d1d1f;
+      font-weight: 500;
+    }
+
+    .contact-id {
+      font-size: 12px;
+      color: #86868b;
+      margin-top: 2px;
+    }
+
+    .contact-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .contact-chat-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 16px;
+      background: #007aff;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .contact-chat-btn:active {
+      background: #0056cc;
+    }
+
+    .contact-profile-btn {
+      padding: 6px 14px;
+      border: 1px solid #e5e5ea;
+      border-radius: 16px;
+      background: #ffffff;
+      color: #1d1d1f;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .contact-profile-btn:active {
+      background: #f5f5f7;
+    }
+
+    .contact-empty {
+      text-align: center;
+      padding: 40px 0;
+      color: #86868b;
+    }
+
+    .search-tip {
+      font-size: 12px;
+      color: #86868b;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="msg-header">
+      <div class="msg-header-left">
+        <div class="msg-header-back" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+        <div class="msg-header-title">消息</div>
+      </div>
+      <div class="msg-header-actions">
+        <button class="msg-new-chat-btn" @click="showNewChatDialog" v-if="activeTab === 'chat'"><i class="el-icon-edit"></i></button>
+        <button class="msg-clear-btn" @click="clearAll">清除</button>
+      </div>
+    </div>
+    <div class="msg-tabs">
+      <div class="msg-tab" :class="{ active: activeTab === 'chat' }" @click="switchTab('chat')">
+        聊天<span class="msg-tab-badge" v-if="chatUnread > 0">{{ chatUnread }}</span>
+      </div>
+      <div class="msg-tab" :class="{ active: activeTab === 'notice' }" @click="switchTab('notice')">
+        通知<span class="msg-tab-badge" v-if="noticeUnread > 0">{{ noticeUnread }}</span>
+      </div>
+    </div>
+    <div class="msg-container">
+      <!-- 聊天列表 -->
+      <div v-if="activeTab === 'chat'">
+        <div class="msg-empty" v-if="chatList.length === 0">
+          <i class="el-icon-chat-line-round"></i>
+          <p>暂无聊天消息</p>
+        </div>
+        <div class="msg-list" v-else>
+          <div class="msg-item" v-for="chat in chatList" :key="chat.userId" @click="openChat(chat)">
+            <div class="msg-avatar">
+              <img :src="chat.icon || './imgs/icons/default.png'" />
+            </div>
+            <div class="msg-content">
+              <div class="msg-name">{{ chat.nickName }}</div>
+              <div class="msg-preview">{{ chat.lastMessage }}</div>
+            </div>
+            <div class="msg-meta">
+              <div class="msg-time">{{ formatTime(chat.createTime) }}</div>
+              <div class="msg-unread-count" v-if="chat.unreadCount > 0">{{ chat.unreadCount }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 通知列表 -->
+      <div v-if="activeTab === 'notice'">
+        <div class="msg-empty" v-if="notices.length === 0">
+          <i class="el-icon-bell"></i>
+          <p>暂无通知消息</p>
+        </div>
+        <div class="msg-list" v-else>
+          <div class="msg-item" v-for="notice in notices" :key="notice.id" @click="onNoticeClick(notice)">
+            <div class="msg-avatar">
+              <img :src="notice.icon || './imgs/icons/default.png'" />
+            </div>
+            <div class="msg-content">
+              <div class="msg-name">{{ notice.nickname || '用户' }}</div>
+              <div class="msg-preview">{{ notice.content }}</div>
+            </div>
+            <div class="msg-meta">
+              <div class="msg-time">{{ formatTime(notice.createTime) }}</div>
+              <div class="msg-unread" v-if="!notice.isRead"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <foot-bar :active-btn="3"></foot-bar>
+    <!-- 新建聊天对话框 -->
+    <el-dialog title="查找用户" :visible.sync="newChatVisible" width="90%" custom-class="new-chat-dialog">
+      <div class="contact-search">
+        <el-input v-model="searchKeyword" placeholder="搜索用户昵称或ID" prefix-icon="el-icon-search" clearable @keyup.enter.native="doSearch"></el-input>
+      </div>
+      <div class="search-tip" v-if="searchKeyword">输入昵称或用户ID后点击搜索</div>
+      <div class="contact-list">
+        <div class="contact-item" v-for="user in searchResults" :key="user.id">
+          <div class="contact-avatar">
+            <img :src="user.icon || './imgs/icons/default.png'" />
+          </div>
+          <div class="contact-info">
+            <div class="contact-name">{{ user.nickName }}</div>
+            <div class="contact-id">ID: {{ user.id }}</div>
+          </div>
+          <div class="contact-actions">
+            <button class="contact-profile-btn" @click.stop="viewProfile(user)">主页</button>
+            <button class="contact-chat-btn" @click.stop="startChat(user)">发消息</button>
+          </div>
+        </div>
+        <div class="contact-empty" v-if="!hasSearched">
+          <i class="el-icon-search" style="font-size:36px;opacity:0.3;margin-bottom:8px;"></i>
+          <p>输入昵称或ID搜索用户</p>
+        </div>
+        <div class="contact-empty" v-else-if="searchResults.length === 0">
+          <p>未找到相关用户</p>
+        </div>
+      </div>
+    </el-dialog>
+  </div>
+  <script src="./js/vue.js"></script>
+  <script src="./js/axios.min.js"></script>
+  <script src="./js/element.js"></script>
+  <script src="./js/common.js"></script>
+  <script src="./js/footer.js"></script>
+  <script>
+    const app = new Vue({
+      el: "#app",
+      data: {
+        activeTab: 'chat',
+        chatList: [],
+        notices: [],
+        chatUnread: 0,
+        noticeUnread: 0,
+        newChatVisible: false,
+        searchKeyword: '',
+        searchResults: [],
+        hasSearched: false,
+        searchTimer: null
+      },
+      created() {
+        this.loadChatList();
+        this.loadNotices();
+        this.loadUnreadCounts();
+      },
+      methods: {
+        goBack() {
+          history.back();
+        },
+        switchTab(tab) {
+          this.activeTab = tab;
+        },
+        showNewChatDialog() {
+          this.newChatVisible = true;
+          this.searchKeyword = '';
+          this.searchResults = [];
+          this.hasSearched = false;
+        },
+        doSearch() {
+          const keyword = this.searchKeyword.trim();
+          if (!keyword) {
+            this.searchResults = [];
+            this.hasSearched = false;
+            return;
+          }
+          clearTimeout(this.searchTimer);
+          this.searchTimer = setTimeout(() => {
+            axios.get('/user/search', { params: { keyword: keyword } }).then(res => {
+              this.searchResults = res || [];
+              this.hasSearched = true;
+            }).catch(err => {
+              console.error('搜索失败:', err);
+              this.searchResults = [];
+              this.hasSearched = true;
+            });
+          }, 300);
+        },
+        viewProfile(user) {
+          this.newChatVisible = false;
+          location.href = 'user-info.html?userId=' + user.id;
+        },
+        startChat(user) {
+          this.newChatVisible = false;
+          location.href = 'chat.html?userId=' + user.id;
+        },
+        loadChatList() {
+          axios.get('/chat/list').then(res => {
+            this.chatList = res || [];
+          }).catch(err => {
+            console.error('加载聊天列表失败:', err);
+            this.chatList = [];
+          });
+        },
+        loadNotices() {
+          axios.get('/notice/list', { params: { current: 1 } }).then(res => {
+            this.notices = res || [];
+          }).catch(err => {
+            console.error('加载通知失败:', err);
+            this.notices = [];
+          });
+        },
+        loadUnreadCounts() {
+          // 聊天未读数
+          axios.get('/chat/unread/count').then(res => {
+            this.chatUnread = res || 0;
+          }).catch(() => {
+            this.chatUnread = 0;
+          });
+          // 通知未读数
+          axios.get('/notice/count').then(res => {
+            this.noticeUnread = res || 0;
+          }).catch(() => {
+            this.noticeUnread = 0;
+          });
+        },
+        openChat(chat) {
+          location.href = 'chat.html?userId=' + chat.userId;
+        },
+        onNoticeClick(notice) {
+          // 标记已读
+          if (!notice.isRead) {
+            axios.put('/notice/read/' + notice.id).then(() => {
+              notice.isRead = true;
+              this.noticeUnread = Math.max(0, this.noticeUnread - 1);
+            });
+          }
+          // 根据通知类型跳转
+          if (notice.type === 4 && notice.relatedId) {
+            // 发笔记通知 → 跳转到博客详情
+            location.href = 'blog-detail.html?id=' + notice.relatedId;
+          } else if (notice.type === 3 && notice.senderId) {
+            // 关注通知 → 跳转到对方主页
+            location.href = 'user-info.html?id=' + notice.senderId;
+          }
+        },
+        clearAll() {
+          this.$confirm('确定要清除所有消息吗？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            let promises = [];
+            if (this.activeTab === 'chat') {
+              promises.push(axios.delete('/chat/clear/all'));
+            } else if (this.activeTab === 'notice') {
+              promises.push(axios.delete('/notice/clear/all'));
+            } else {
+              promises.push(axios.delete('/chat/clear/all'));
+              promises.push(axios.delete('/notice/clear/all'));
+            }
+            Promise.all(promises).then(() => {
+              this.$message.success('清除成功');
+              if (this.activeTab === 'chat' || this.activeTab === 'all') this.chatList = [];
+              if (this.activeTab === 'notice' || this.activeTab === 'all') this.notices = [];
+              this.loadUnreadCounts();
+            }).catch(err => {
+              this.$message.error('清除失败');
+            });
+          }).catch(() => {});
+        },
+        formatTime(time) {
+          if (!time) return '';
+          const date = new Date(time);
+          const now = new Date();
+          const diff = now - date;
+          
+          if (diff < 60 * 1000) return '刚刚';
+          if (diff < 60 * 60 * 1000) return Math.floor(diff / 60000) + '分钟前';
+          if (diff < 24 * 60 * 60 * 1000) return Math.floor(diff / 3600000) + '小时前';
+          
+          const month = date.getMonth() + 1;
+          const day = date.getDate();
+          if (date.getFullYear() === now.getFullYear()) {
+            return month + '月' + day + '日';
+          }
+          return date.getFullYear() + '/' + month + '/' + day;
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>

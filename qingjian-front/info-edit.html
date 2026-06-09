@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>青荐</title>
+  <link rel="icon" href="/imgs/logo.svg" type="image/svg+xml">
+  <!-- 引入样式 -->
+  <link rel="stylesheet" href="./css/element.css">
+  <link href="./css/main.css" rel="stylesheet">
+  <link href="./css/info.css" rel="stylesheet">
+
+  <style type="text/css">
+
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-back-btn" @click="goBack" ><i class="el-icon-arrow-left"></i></div>
+    <div class="header-title">资料编辑&nbsp;&nbsp;&nbsp;</div>
+  </div>
+  <div class="edit-container">
+    <div class="info-box">
+      <div class="info-item">
+        <div class="info-label">头像</div>
+        <div class="info-btn avatar-clickable" @click="changeAvatar">
+          <img width="35" :src="user.icon || '/imgs/icons/default-icon.png'" alt="">
+          <div><i class="el-icon-arrow-right"></i></div>
+        </div>
+        <input type="file" id="avatar-upload" accept="image/*" class="avatar-upload-input" @change="handleAvatarUpload">
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <div class="info-label">昵称</div>
+        <div class="info-value">
+          <input type="text" v-model="user.nickName" placeholder="请输入昵称">
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <div class="info-label">个人介绍</div>
+        <div class="info-value">
+          <input type="text" v-model="info.introduce" placeholder="介绍一下自己">
+        </div>
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="info-item">
+        <div class="info-label">性别</div>
+        <div class="info-value">
+          <div class="custom-select" @click="toggleGenderSelect">
+            <span>{{genderText}}</span>
+            <i class="el-icon-arrow-down"></i>
+          </div>
+          <div v-if="showGenderSelect" class="select-options">
+            <div v-for="opt in genderOptions" :key="opt.value" 
+                 @click="selectGender(opt.value)"
+                 :class="{selected: info.gender === opt.value}">
+              {{opt.label}}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <div class="info-label">城市</div>
+        <div class="info-value">
+          <div class="custom-select" @click="toggleCityPicker">
+            <span>{{info.city || '选择'}}</span>
+            <i class="el-icon-arrow-down"></i>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <div class="info-label">生日</div>
+        <div class="info-value">
+          <div class="custom-select" @click="toggleDatePicker">
+            <span>{{birthdayText}}</span>
+            <i class="el-icon-arrow-down"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-item">
+        <div class="info-label">我的积分</div>
+        <div class="info-btn">
+          <div>查看积分</div>
+          <div><i class="el-icon-arrow-right"></i></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="info-item">
+        <div class="info-label">会员等级</div>
+        <div class="info-btn">
+          <div><a href="javascript:void(0)">成为VIP尊享特权</a></div>
+          <div><i class="el-icon-arrow-right"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="save-btn-container">
+      <button class="save-btn" @click="saveInfo">保存</button>
+    </div>
+  </div>
+  
+  <div v-if="showDatePicker" class="date-picker-mask" @click="closeDatePicker">
+    <div class="date-picker-modal" @click.stop>
+      <div class="date-picker-header">
+        <span class="date-picker-title">选择日期</span>
+        <span class="date-picker-close" @click="closeDatePicker">×</span>
+      </div>
+      <div class="date-picker-content">
+        <div class="date-picker-nav">
+          <button @click="prevYear"><i class="el-icon-arrow-left"></i></button>
+          <button @click="prevMonth"><i class="el-icon-arrow-left"></i></button>
+          <span>{{currentYear}}年{{currentMonth}}月</span>
+          <button @click="nextMonth"><i class="el-icon-arrow-right"></i></button>
+          <button @click="nextYear"><i class="el-icon-arrow-right"></i></button>
+        </div>
+        <div class="date-picker-weekdays">
+          <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+        </div>
+        <div class="date-picker-days">
+          <div v-for="(day, index) in calendarDays" :key="index" 
+               :class="{empty: !day, today: isToday(day), selected: isSelected(day)}"
+               @click="day && selectDate(day)">
+            {{day}}
+          </div>
+        </div>
+      </div>
+      <div class="date-picker-footer">
+        <button class="date-picker-cancel" @click="closeDatePicker">取消</button>
+        <button class="date-picker-confirm" @click="confirmDate">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showCityPicker" class="date-picker-mask" @click="closeCityPicker">
+    <div class="date-picker-modal" @click.stop>
+      <div class="date-picker-header">
+        <span class="date-picker-title">选择城市</span>
+        <span class="date-picker-close" @click="closeCityPicker">×</span>
+      </div>
+      <div class="city-picker-content">
+        <div class="city-item" v-for="city in cities" :key="city" 
+             :class="{selected: info.city === city}"
+             @click="selectCity(city)">
+          {{city}}
+        </div>
+      </div>
+      <div class="date-picker-footer">
+        <button class="date-picker-cancel" @click="closeCityPicker">取消</button>
+        <button class="date-picker-confirm" @click="confirmCity">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script>
+
+  const app = new Vue({
+    el: "#app",
+    data: {
+      user: "",
+      info: {},
+      showGenderSelect: false,
+      genderOptions: [
+        { value: null, label: '选择' },
+        { value: false, label: '男' },
+        { value: true, label: '女' }
+      ],
+      showDatePicker: false,
+      currentYear: 2024,
+      currentMonth: 1,
+      selectedDate: null,
+      tempDate: null,
+      showCityPicker: false,
+      tempCity: null,
+      cities: [
+        '北京', '上海', '广州', '深圳', '杭州', '南京', '苏州', '成都', '重庆', '武汉',
+        '西安', '长沙', '郑州', '青岛', '大连', '宁波', '厦门', '天津', '沈阳', '哈尔滨',
+        '长春', '济南', '石家庄', '太原', '合肥', '福州', '南昌', '南宁', '海口', '三亚',
+        '昆明', '贵阳', '兰州', '西宁', '银川', '乌鲁木齐', '拉萨', '呼和浩特', '包头', '鄂尔多斯',
+        '唐山', '保定', '秦皇岛', '邯郸', '邢台', '沧州', '廊坊', '衡水', '张家口', '承德',
+        '大同', '阳泉', '长治', '晋城', '朔州', '晋中', '运城', '忻州', '临汾', '吕梁',
+        '鞍山', '抚顺', '本溪', '丹东', '锦州', '营口', '阜新', '辽阳', '盘锦', '铁岭',
+        '朝阳', '葫芦岛', '吉林', '四平', '辽源', '通化', '白山', '松原', '白城', '延边',
+        '齐齐哈尔', '鸡西', '鹤岗', '双鸭山', '大庆', '伊春', '佳木斯', '七台河', '牡丹江', '黑河',
+        '无锡', '徐州', '常州', '南通', '连云港', '淮安', '盐城', '扬州', '镇江', '泰州',
+        '宿迁', '温州', '嘉兴', '湖州', '绍兴', '金华', '衢州', '舟山', '台州', '丽水',
+        '芜湖', '蚌埠', '淮南', '马鞍山', '淮北', '铜陵', '安庆', '黄山', '滁州', '阜阳',
+        '宿州', '六安', '亳州', '池州', '宣城', '莆田', '三明', '泉州', '漳州', '南平',
+        '龙岩', '宁德', '景德镇', '萍乡', '九江', '新余', '鹰潭', '赣州', '吉安', '宜春',
+        '抚州', '上饶', '淄博', '枣庄', '东营', '烟台', '潍坊', '济宁', '泰安', '威海',
+        '日照', '临沂', '德州', '聊城', '滨州', '菏泽', '洛阳', '开封', '洛阳', '平顶山',
+        '安阳', '鹤壁', '新乡', '焦作', '濮阳', '许昌', '漯河', '三门峡', '南阳', '商丘',
+        '信阳', '周口', '驻马店', '黄石', '十堰', '宜昌', '襄阳', '鄂州', '荆门', '孝感',
+        '荆州', '黄冈', '咸宁', '随州', '恩施', '株洲', '湘潭', '衡阳', '邵阳', '岳阳',
+        '常德', '张家界', '益阳', '郴州', '永州', '怀化', '娄底', '湘西', '韶关', '珠海',
+        '汕头', '佛山', '江门', '湛江', '茂名', '肇庆', '惠州', '梅州', '汕尾', '河源',
+        '阳江', '清远', '东莞', '中山', '潮州', '揭阳', '云浮', '柳州', '桂林', '梧州',
+        '北海', '防城港', '钦州', '贵港', '玉林', '百色', '贺州', '河池', '来宾', '崇左',
+        '海口', '三亚', '三沙', '儋州', '自贡', '攀枝花', '泸州', '德阳', '绵阳', '广元',
+        '遂宁', '内江', '乐山', '南充', '眉山', '宜宾', '广安', '达州', '雅安', '巴中',
+        '资阳', '阿坝', '甘孜', '凉山', '六盘水', '遵义', '安顺', '毕节', '铜仁', '黔西南',
+        '黔东南', '黔南', '玉溪', '保山', '昭通', '丽江', '普洱', '临沧', '楚雄', '红河',
+        '文山', '西双版纳', '大理', '德宏', '怒江', '迪庆', '拉萨', '日喀则', '昌都', '林芝',
+        '山南', '那曲', '阿里', '铜川', '宝鸡', '咸阳', '渭南', '延安', '汉中', '榆林',
+        '安康', '商洛', '嘉峪关', '金昌', '白银', '天水', '武威', '张掖', '平凉', '酒泉',
+        '庆阳', '定西', '陇南', '临夏', '甘南', '西宁', '海东', '海北', '黄南', '海南',
+        '果洛', '玉树', '海西', '银川', '石嘴山', '吴忠', '固原', '中卫', '乌鲁木齐', '克拉玛依',
+        '吐鲁番', '哈密', '昌吉', '博尔塔拉', '巴音郭楞', '阿克苏', '克孜勒苏', '喀什', '和田', '伊犁'
+      ]
+    },
+    computed: {
+      genderText() {
+        const opt = this.genderOptions.find(o => o.value === this.info.gender);
+        return opt ? opt.label : '选择';
+      },
+      birthdayText() {
+        if (!this.info.birthday) return '添加';
+        return this.info.birthday;
+      },
+      calendarDays() {
+        const year = this.currentYear;
+        const month = this.currentMonth;
+        const firstDay = new Date(year, month - 1, 1).getDay();
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const days = [];
+        
+        for (let i = 0; i < firstDay; i++) {
+          days.push(null);
+        }
+        
+        for (let i = 1; i <= daysInMonth; i++) {
+          days.push(i);
+        }
+        
+        return days;
+      }
+    },
+    created() {
+      this.checkLogin();
+      document.addEventListener('click', this.closeGenderSelect);
+      const now = new Date();
+      this.currentYear = now.getFullYear();
+      this.currentMonth = now.getMonth() + 1;
+    },
+    beforeDestroy() {
+      document.removeEventListener('click', this.closeGenderSelect);
+    },
+    methods: {
+      checkLogin() {
+        axios.get("/user/me")
+        .then(data => {
+          this.user = data;
+          this.loadUserInfo(data.id);
+        })
+        .catch(err => {
+          this.$message.error(err);
+          setTimeout(() => location.href = "login.html", 1000)
+        })
+      },
+      loadUserInfo(userId) {
+        axios.get("/user/info/" + userId)
+        .then(data => {
+          this.info = data || {};
+          sessionStorage.setItem("userInfo", JSON.stringify(this.info));
+        })
+        .catch(err => {
+          this.info = {};
+        })
+      },
+      goBack(){
+        history.back();
+      },
+      changeAvatar() {
+        document.getElementById('avatar-upload').click();
+      },
+      handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        axios.post("/user/upload", formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        })
+        .then(data => {
+          this.user.icon = data;
+          this.$message.success("头像上传成功");
+        })
+        .catch(err => {
+          this.$message.error("头像上传失败");
+        })
+        .finally(() => {
+          event.target.value = '';
+        })
+      },
+      toggleGenderSelect(event) {
+        event.stopPropagation();
+        this.showGenderSelect = !this.showGenderSelect;
+      },
+      selectGender(value) {
+        this.info.gender = value;
+        this.showGenderSelect = false;
+      },
+      closeGenderSelect() {
+        this.showGenderSelect = false;
+      },
+      toggleCityPicker() {
+        this.tempCity = this.info.city;
+        this.showCityPicker = true;
+      },
+      closeCityPicker() {
+        this.showCityPicker = false;
+      },
+      selectCity(city) {
+        this.tempCity = city;
+      },
+      confirmCity() {
+        if (this.tempCity) {
+          this.info.city = this.tempCity;
+        }
+        this.closeCityPicker();
+      },
+      toggleDatePicker() {
+        if (this.info.birthday) {
+          const parts = this.info.birthday.split('-');
+          this.currentYear = parseInt(parts[0]);
+          this.currentMonth = parseInt(parts[1]);
+          this.tempDate = {
+            year: parseInt(parts[0]),
+            month: parseInt(parts[1]),
+            day: parseInt(parts[2])
+          };
+        } else {
+          const now = new Date();
+          this.currentYear = now.getFullYear();
+          this.currentMonth = now.getMonth() + 1;
+          this.tempDate = null;
+        }
+        this.showDatePicker = true;
+      },
+      closeDatePicker() {
+        this.showDatePicker = false;
+      },
+      prevYear() {
+        this.currentYear--;
+      },
+      nextYear() {
+        this.currentYear++;
+      },
+      prevMonth() {
+        if (this.currentMonth === 1) {
+          this.currentMonth = 12;
+          this.currentYear--;
+        } else {
+          this.currentMonth--;
+        }
+      },
+      nextMonth() {
+        if (this.currentMonth === 12) {
+          this.currentMonth = 1;
+          this.currentYear++;
+        } else {
+          this.currentMonth++;
+        }
+      },
+      isToday(day) {
+        const today = new Date();
+        return day && 
+               this.currentYear === today.getFullYear() && 
+               this.currentMonth === today.getMonth() + 1 && 
+               day === today.getDate();
+      },
+      isSelected(day) {
+        return day && 
+               this.tempDate &&
+               this.currentYear === this.tempDate.year && 
+               this.currentMonth === this.tempDate.month && 
+               day === this.tempDate.day;
+      },
+      selectDate(day) {
+        this.tempDate = {
+          year: this.currentYear,
+          month: this.currentMonth,
+          day: day
+        };
+      },
+      confirmDate() {
+        if (this.tempDate) {
+          const year = this.tempDate.year.toString();
+          const month = this.tempDate.month.toString().padStart(2, '0');
+          const day = this.tempDate.day.toString().padStart(2, '0');
+          this.info.birthday = `${year}-${month}-${day}`;
+        }
+        this.closeDatePicker();
+      },
+      saveInfo() {
+        const saveData = {
+          ...this.info
+        };
+        const params = new URLSearchParams();
+        if (this.user.nickName) {
+          params.append('nickName', this.user.nickName);
+        }
+        axios.post("/user/info?" + params.toString(), saveData)
+        .then(() => {
+          this.$message.success("保存成功");
+          sessionStorage.setItem("userInfo", JSON.stringify({
+            ...saveData,
+            nickName: this.user.nickName
+          }));
+        })
+        .catch(err => {
+          this.$message.error(err);
+        })
+      }
+    },
+
+  })
+</script>
+</body>
+</html>

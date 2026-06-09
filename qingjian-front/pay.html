@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>支付</title>
+  <link rel="stylesheet" href="./css/element.css">
+  <link href="./css/main.css" rel="stylesheet">
+  <style>
+    body { background: #f5f5f5; margin: 0; }
+    .pay-header { display: flex; align-items: center; padding: 12px 16px; background: #fff; border-bottom: 1px solid #eee; }
+    .pay-header .back { font-size: 20px; cursor: pointer; margin-right: 12px; }
+    .pay-header .title { font-size: 16px; font-weight: 600; }
+    .pay-body { padding: 24px 16px; }
+    .pay-amount { text-align: center; padding: 30px 0; }
+    .pay-amount .label { font-size: 14px; color: #999; }
+    .pay-amount .value { font-size: 36px; font-weight: 700; color: #333; margin-top: 8px; }
+    .pay-amount .value span { font-size: 18px; }
+    .pay-info { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .pay-info .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+    .pay-info .row .label { color: #999; }
+    .pay-info .row .val { color: #333; }
+    .pay-btn { width: 100%; padding: 14px; background: #ff2442; color: #fff; border: none; border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer; }
+    .pay-btn:disabled { background: #ccc; }
+    .pay-status { text-align: center; padding: 60px 0; }
+    .pay-status .icon { font-size: 48px; margin-bottom: 16px; }
+    .pay-status .text { font-size: 16px; color: #333; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="pay-header">
+    <div class="back" @click="goBack"><i class="el-icon-arrow-left"></i></div>
+    <div class="title">确认支付</div>
+  </div>
+  <div class="pay-body">
+    <div class="pay-amount">
+      <div class="label">支付金额</div>
+      <div class="value"><span>¥</span> {{ payAmount }}</div>
+    </div>
+    <div class="pay-info">
+      <div class="row"><span class="label">优惠券</span><span class="val">{{ voucherTitle }}</span></div>
+      <div class="row"><span class="label">抵扣金额</span><span class="val">¥{{ actualAmount }}</span></div>
+      <div class="row"><span class="label">支付方式</span><span class="val">余额支付</span></div>
+    </div>
+    <button class="pay-btn" :disabled="paying" @click="doPay">
+      {{ paying ? '支付中...' : '确认支付' }}
+    </button>
+  </div>
+</div>
+<script src="./js/vue.js"></script>
+<script src="./js/axios.min.js"></script>
+<script src="./js/element.js"></script>
+<script src="./js/common.js"></script>
+<script>
+  const app = new Vue({
+    el: "#app",
+    data: {
+      orderId: null,
+      voucherTitle: '',
+      payAmount: '0.00',
+      actualAmount: '0.00',
+      paying: false
+    },
+    created() {
+      this.orderId = util.getUrlParam('orderId');
+      if (!this.orderId) {
+        this.$message.error('缺少订单参数');
+        setTimeout(() => history.back(), 1000);
+        return;
+      }
+      this.loadOrderInfo();
+    },
+    methods: {
+      loadOrderInfo() {
+        axios.get('/voucher-order/pay/status/' + this.orderId).then(status => {
+          if (status === 2) {
+            this.$message.success('该订单已支付');
+            setTimeout(() => location.href = 'my-orders.html', 1500);
+            return;
+          }
+          // 查询订单详情
+          axios.get('/voucher-order/list').then(orders => {
+            let order = orders.find(o => o.id == this.orderId);
+            if (!order) {
+              this.$message.error('订单不存在');
+              return;
+            }
+            // 查询券信息
+            axios.get('/voucher/' + order.voucherId).then(v => {
+              this.voucherTitle = v.title;
+              this.payAmount = (v.payValue / 100).toFixed(2);
+              this.actualAmount = (v.actualValue / 100).toFixed(2);
+            });
+          });
+        }).catch(() => {});
+      },
+      doPay() {
+        this.paying = true;
+        axios.post('/voucher-order/pay/' + this.orderId).then(() => {
+          this.$message.success('支付成功！');
+          setTimeout(() => location.href = 'my-orders.html', 1500);
+        }).catch(err => {
+          this.$message.error(err);
+          this.paying = false;
+        });
+      },
+      goBack() {
+        history.back();
+      }
+    }
+  })
+</script>
+</body>
+</html>
