@@ -1,0 +1,184 @@
+@use '@/styles/variables.scss' as *;
+@use '@/styles/theme.scss' as *;
+
+.shopDetailPage {
+  background: $color-bg-page;
+  min-height: 100vh;
+
+  .banner {
+    width: 100%;
+    height: 400rpx;
+  }
+
+  .info {
+    background: $color-bg-card;
+    padding: $spacing-lg;
+    margin-bottom: $spacing-md;
+
+    .name {
+      font-size: $font-size-xl;
+      font-weight: $font-weight-semibold;
+      color: $color-text-primary;
+      margin-bottom: $spacing-sm;
+    }
+
+    .tags {
+      display: flex;
+      gap: $spacing-sm;
+      margin-bottom: $spacing-sm;
+
+      .tag {
+        background: $color-tag-bg;
+        color: $color-tag-text;
+        padding: 4rpx 16rpx;
+        border-radius: $radius-sm;
+        font-size: $font-size-xs;
+      }
+    }
+
+    .address {
+      font-size: $font-size-sm;
+      color: $color-text-secondary;
+      margin-bottom: $spacing-sm;
+    }
+
+    .score {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+
+      .star {
+        color: $color-star-active;
+        font-size: $font-size-md;
+      }
+
+      .scoreText {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        color: $color-text-primary;
+      }
+
+      .comments {
+        font-size: $font-size-sm;
+        color: $color-text-tertiary;
+      }
+    }
+  }
+
+  .section {
+    background: $color-bg-card;
+    padding: $spacing-lg;
+    margin-bottom: $spacing-md;
+
+    .title {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $color-text-primary;
+      margin-bottom: $spacing-md;
+    }
+
+    .voucherItem {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: $spacing-md 0;
+      border-bottom: 1rpx solid $color-divider;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .left {
+        .voucherTitle {
+          font-size: $font-size-md;
+          color: $color-text-primary;
+          margin-bottom: $spacing-xs;
+        }
+
+        .price {
+          color: $color-seckill;
+          font-size: $font-size-lg;
+          font-weight: $font-weight-semibold;
+
+          .original {
+            color: $color-text-tertiary;
+            font-size: $font-size-xs;
+            text-decoration: line-through;
+            font-weight: $font-weight-normal;
+            margin-left: $spacing-sm;
+          }
+        }
+      }
+
+      .grabBtn {
+        background: $color-seckill;
+        color: $color-text-white;
+        padding: 12rpx 32rpx;
+        border-radius: $radius-button;
+        font-size: $font-size-sm;
+        border: none;
+
+        &:active {
+          opacity: 0.9;
+        }
+      }
+    }
+  }
+
+  .comments {
+    background: $color-bg-card;
+    padding: $spacing-lg;
+
+    .title {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $color-text-primary;
+      margin-bottom: $spacing-md;
+    }
+
+    .commentItem {
+      padding: $spacing-md 0;
+      border-bottom: 1rpx solid $color-divider;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        margin-bottom: $spacing-sm;
+
+        .avatar {
+          width: 60rpx;
+          height: 60rpx;
+          border-radius: $radius-round;
+          margin-right: $spacing-sm;
+        }
+
+        .userName {
+          font-size: $font-size-sm;
+          color: $color-text-primary;
+          flex: 1;
+        }
+
+        .score {
+          color: $color-star-active;
+          font-size: $font-size-sm;
+        }
+      }
+
+      .content {
+        font-size: $font-size-md;
+        color: $color-text-secondary;
+        line-height: $line-height-loose;
+        margin-bottom: $spacing-xs;
+      }
+
+      .time {
+        font-size: $font-size-xs;
+        color: $color-text-tertiary;
+      }
+    }
+  }
+}

@@ -1,0 +1,101 @@
+@use '@/styles/variables.scss' as *;
+@use '@/styles/theme.scss' as *;
+
+.shopCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  margin-bottom: $spacing-md;
+
+  .imageWrapper {
+    width: 100%;
+    height: 320rpx;
+    position: relative;
+
+    .image {
+      width: 100%;
+      height: 100%;
+    }
+
+    .seckillTag {
+      position: absolute;
+      top: $spacing-sm;
+      right: $spacing-sm;
+      background: $color-seckill;
+      color: $color-text-white;
+      padding: 6rpx 16rpx;
+      border-radius: $radius-round;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  .content {
+    padding: $spacing-lg;
+
+    .name {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $color-text-primary;
+      @include text-ellipsis;
+      margin-bottom: $spacing-sm;
+    }
+
+    .info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: $spacing-sm;
+
+      .type {
+        font-size: $font-size-sm;
+        color: $color-text-tertiary;
+      }
+
+      .distance {
+        font-size: $font-size-sm;
+        color: $color-text-tertiary;
+      }
+    }
+
+    .bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .score {
+        display: flex;
+        align-items: center;
+        gap: $spacing-xs;
+
+        .star {
+          color: $color-star-active;
+          font-size: $font-size-sm;
+        }
+
+        .scoreText {
+          font-size: $font-size-md;
+          font-weight: $font-weight-semibold;
+          color: $color-text-primary;
+        }
+
+        .comments {
+          font-size: $font-size-xs;
+          color: $color-text-tertiary;
+        }
+      }
+
+      .price {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        color: $color-text-primary;
+
+        .unit {
+          font-size: $font-size-xs;
+          font-weight: $font-weight-normal;
+        }
+      }
+    }
+  }
+}

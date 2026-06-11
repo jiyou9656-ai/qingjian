@@ -1,0 +1,86 @@
+@use '@/styles/variables.scss' as *;
+@use '@/styles/theme.scss' as *;
+
+.messagePage {
+  background: $color-bg-page;
+  min-height: 100vh;
+  padding: 0 $page-padding;
+
+  .messageList {
+    padding: $spacing-lg 0;
+  }
+
+  .messageItem {
+    background: $color-bg-card;
+    border-radius: $radius-lg;
+    padding: $spacing-lg;
+    margin-bottom: $spacing-md;
+    box-shadow: $shadow-card;
+    display: flex;
+    align-items: flex-start;
+
+    &.unread {
+      background: linear-gradient(135deg, rgba(0, 191, 165, 0.05) 0%, rgba(0, 191, 165, 0.02) 100%);
+    }
+
+    .icon {
+      width: 80rpx;
+      height: 80rpx;
+      border-radius: $radius-round;
+      background: $color-bg-page;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36rpx;
+      margin-right: $spacing-lg;
+      flex-shrink: 0;
+    }
+
+    .content {
+      flex: 1;
+
+      .title {
+        font-size: $font-size-md;
+        font-weight: $font-weight-medium;
+        color: $color-text-primary;
+        margin-bottom: $spacing-xs;
+      }
+
+      .desc {
+        font-size: $font-size-sm;
+        color: $color-text-secondary;
+        @include text-ellipsis-multi(2);
+        margin-bottom: $spacing-xs;
+      }
+
+      .time {
+        font-size: $font-size-xs;
+        color: $color-text-tertiary;
+      }
+    }
+
+    .unreadDot {
+      width: 16rpx;
+      height: 16rpx;
+      background: $color-error;
+      border-radius: $radius-round;
+      flex-shrink: 0;
+      margin-top: $spacing-sm;
+    }
+  }
+
+  .empty {
+    text-align: center;
+    padding: 200rpx 0;
+
+    .icon {
+      font-size: 120rpx;
+      margin-bottom: $spacing-lg;
+    }
+
+    .text {
+      font-size: $font-size-md;
+      color: $color-text-tertiary;
+    }
+  }
+}
