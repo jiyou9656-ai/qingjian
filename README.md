@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/RabbitMQ-3.11-orange" alt="RabbitMQ">
   <img src="https://img.shields.io/badge/MySQL-8.0-blue" alt="MySQL">
   <img src="https://img.shields.io/badge/Vue.js-2.x-brightgreen" alt="Vue.js">
+  <img src="https://img.shields.io/badge/Taro-3.x-teal" alt="Taro">
 </p>
 
 ## 项目简介
@@ -150,11 +151,15 @@ qingjian/
 ├── src/main/resources/
 │   ├── db/hmdp.sql      # 数据库初始化脚本
 │   └── application.yaml # 配置文件
-├── qingjian-front/      # 前端项目
+├── qingjian-front/      # Web 前端项目
 │   ├── index.html       # 首页
 │   ├── shop-list.html   # 商户列表
 │   ├── shop-detail.html # 商户详情
 │   └── ...
+├── miniapp/             # 微信小程序（Taro 框架）
+│   ├── src/pages/       # 页面（首页、发现、发布、消息、我的）
+│   ├── src/components/  # 通用组件（商户卡片、笔记卡片）
+│   └── src/services/    # API 服务封装
 └── shop_comment.sql     # 评价系统数据脚本
 ```
 
@@ -169,9 +174,10 @@ qingjian/
 - Lombok
 
 **前端：**
-- Vue.js 2.x
+- Vue.js 2.x（Web 端）
 - Element UI
 - Axios
+- Taro 3.x（微信小程序，跨端开发）
 
 **中间件：**
 - Redis 6.2
