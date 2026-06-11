@@ -1,0 +1,69 @@
+[22:37:54.422] Try reusing port from lock file: 52648
+[22:37:54.444] Server listening on port 52648, PID 24736
+[22:37:54.467] readProjectFiles, Found 46 files to read.
+[22:37:54.514] Starting PAI Cloud Dev...
+[22:37:54.515] [PAI SDK] createCloudSession error: ReferenceError: fetch is not defined
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:100102
+    at Generator.next (<anonymous>)
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:99751
+    at new Promise (<anonymous>)
+    at hh (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:99571)
+    at mT (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:100067)
+    at Ql.<anonymous> (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:21746)
+    at Generator.next (<anonymous>)
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:14969
+    at new Promise (<anonymous>)
+[22:37:54.517] [PAI SDK] createCloudSession response: undefined
+[22:37:54.517] Start failed: Error: create session failed.
+    at Ql.<anonymous> (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:21884)
+    at Generator.next (<anonymous>)
+    at n (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:14827)
+[22:37:54.884] [Preview Server] Frontend connected, clients size = 1
+[22:37:54.884] Sending cached status to new connection, lastErrorMessage = {"event":"pnpm_error","message":"create session failed."}
+[22:38:15.319] [Preview Server] Frontend disconnected, clients size = 1
+[22:38:16.711] [Preview Server] Frontend connected, clients size = 1
+[22:38:16.711] Sending cached status to new connection, lastErrorMessage = {"event":"pnpm_error","message":"create session failed."}
+[22:38:18.485] [PAI SDK] createCloudSession error: ReferenceError: fetch is not defined
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:100102
+    at Generator.next (<anonymous>)
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:99751
+    at new Promise (<anonymous>)
+    at hh (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:99571)
+    at mT (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:100067)
+    at Ql.<anonymous> (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:21746)
+    at Generator.next (<anonymous>)
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:14969
+    at new Promise (<anonymous>)
+[22:38:18.486] [PAI SDK] createCloudSession response: undefined
+[22:38:18.489] (node:24736) UnhandledPromiseRejectionWarning: Error: create session failed.
+    at Ql.<anonymous> (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:21884)
+    at Generator.next (<anonymous>)
+    at n (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:14827)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+(Use `node --trace-warnings ...` to show where the warning was created)
+[22:38:18.490] (node:24736) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 1)
+[22:38:18.490] (node:24736) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
+[22:38:30.595] [Preview Server] Frontend disconnected, clients size = 1
+[22:38:30.952] [Preview Server] Frontend connected, clients size = 1
+[22:38:30.953] Sending cached status to new connection, lastErrorMessage = {"event":"pnpm_error","message":"create session failed."}
+[22:38:41.500] [PAI SDK] createCloudSession error: ReferenceError: fetch is not defined
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:100102
+    at Generator.next (<anonymous>)
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:99751
+    at new Promise (<anonymous>)
+    at hh (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:99571)
+    at mT (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:20:100067)
+    at Ql.<anonymous> (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:21746)
+    at Generator.next (<anonymous>)
+    at c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:14969
+    at new Promise (<anonymous>)
+[22:38:41.501] [PAI SDK] createCloudSession response: undefined
+[22:38:41.504] (node:24736) UnhandledPromiseRejectionWarning: Error: create session failed.
+    at Ql.<anonymous> (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:21884)
+    at Generator.next (<anonymous>)
+    at n (c:\Users\游继屿\.trae-cn\builtin_skills\TRAE-generate-mini-app\scripts\preview-server.js:177:14827)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+[22:38:41.505] (node:24736) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). To terminate the node process on unhandled promise rejection, use the CLI flag `--unhandled-rejections=strict` (see https://nodejs.org/api/cli.html#cli_unhandled_rejections_mode). (rejection id: 2)
+[22:39:06.901] [Preview Server] Frontend disconnected, clients size = 1
+[22:39:07.259] [Preview Server] Frontend connected, clients size = 1
+[22:39:07.259] Sending cached status to new connection, lastErrorMessage = {"event":"pnpm_error","message":"create session failed."}
